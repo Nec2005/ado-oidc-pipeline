@@ -19,7 +19,7 @@ terraform {
     bucket         = "eu-west-1-chillipharm-terraform-state-necatidev"
     key            = "aws/ado-oidc-pipeline/terraform.tfstate"
     region         = "eu-west-1"
-    use_lockfile = true
+    use_lockfile   = true
   }
 }
 
