@@ -1,0 +1,94 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - terraform/*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - name: AWS_REGION
+    value: 'eu-west-1'
+  - name: SERVICE_CONNECTION_NAME
+    value: 'AWS-necatidev-533267146698'
+  - name: TERRAFORM_VERSION
+    value: '1.6.0'
+
+stages:
+  - stage: Plan
+    displayName: 'Terraform Plan'
+    jobs:
+      - job: TerraformPlan
+        displayName: 'Run Terraform Plan'
+        steps:
+          - checkout: self
+
+          - task: TerraformInstaller@1
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: $(TERRAFORM_VERSION)
+
+          - task: AWSShellScript@1
+            displayName: 'Terraform Init & Plan'
+            inputs:
+              awsCredentials: $(SERVICE_CONNECTION_NAME)
+              regionName: $(AWS_REGION)
+              scriptType: 'inline'
+              inlineScript: |
+                set -e
+
+                # AWS credentials are automatically configured by the task
+                aws sts get-caller-identity
+
+                cd terraform
+                terraform init
+                terraform plan -out=tfplan
+                terraform show -no-color tfplan
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Terraform Plan'
+            inputs:
+              targetPath: 'terraform'
+              artifact: 'terraform-plan'
+
+  - stage: Apply
+    displayName: 'Terraform Apply'
+    dependsOn: Plan
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: TerraformApply
+        displayName: 'Apply Terraform Changes'
+        environment: 'production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: TerraformInstaller@1
+                  displayName: 'Install Terraform'
+                  inputs:
+                    terraformVersion: $(TERRAFORM_VERSION)
+
+                - task: DownloadPipelineArtifact@2
+                  displayName: 'Download Terraform Plan'
+                  inputs:
+                    artifact: 'terraform-plan'
+                    path: '$(System.DefaultWorkingDirectory)/terraform'
+
+                - task: AWSShellScript@1
+                  displayName: 'Terraform Apply'
+                  inputs:
+                    awsCredentials: $(SERVICE_CONNECTION_NAME)
+                    regionName: $(AWS_REGION)
+                    scriptType: 'inline'
+                    inlineScript: |
+                      set -e
+
+                      cd terraform
+                      terraform init
+                      terraform apply -auto-approve tfplan
+                      terraform output -json
