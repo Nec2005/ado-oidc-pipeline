@@ -11,7 +11,7 @@ locals {
 resource "aws_s3_bucket" "this" {
   for_each = var.buckets
 
-  bucket = "demo-ado-necatidev-20251216}-${each.key}"
+  bucket = "demo-ado-necatidev-20251216-${each.key}"
 
   tags = merge(
     local.common_tags,
