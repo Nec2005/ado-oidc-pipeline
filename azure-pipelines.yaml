@@ -6,6 +6,16 @@ trigger:
     include:
       - terraform/*
 
+pr:
+  branches:
+    include:
+      - development
+      - main
+  paths:
+    include:
+      - terraform/*
+      - azure-pipelines.yaml
+
 pool:
   vmImage: 'ubuntu-latest'
 
@@ -40,12 +50,18 @@ stages:
               inlineScript: |
                 set -e
 
-                # AWS credentials are automatically configured by the task
+                echo "Verifying AWS credentials..."
                 aws sts get-caller-identity
 
                 cd terraform
+
+                echo "Initializing Terraform..."
                 terraform init
+
+                echo "Running Terraform plan..."
                 terraform plan -out=tfplan
+
+                echo "Showing plan..."
                 terraform show -no-color tfplan
 
           - task: PublishPipelineArtifact@1
@@ -61,7 +77,7 @@ stages:
     jobs:
       - deployment: TerraformApply
         displayName: 'Apply Terraform Changes'
-        environment: 'production'
+        environment: 'dev'
         strategy:
           runOnce:
             deploy:
@@ -88,7 +104,17 @@ stages:
                     inlineScript: |
                       set -e
 
+                      echo "Verifying AWS credentials..."
+                      aws sts get-caller-identity
+
                       cd terraform
+
+                      echo "Initializing Terraform..."
                       terraform init
+
+                      echo "Applying Terraform plan..."
                       terraform apply -auto-approve tfplan
+
+                      echo "Terraform outputs:"
                       terraform output -json
+                      
