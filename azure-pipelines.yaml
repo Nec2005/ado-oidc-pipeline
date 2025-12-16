@@ -28,6 +28,8 @@ variables:
     value: 'AWS-necatidev-533267146698'
   - name: TERRAFORM_VERSION
     value: '1.13.4'
+  - name: TF_PLUGIN_CACHE_DIR
+    value: $(Pipeline.Workspace)/.terraform.d/plugin-cache
 
 stages:
   - stage: Plan
@@ -38,8 +40,19 @@ stages:
         steps:
           - checkout: self
 
+          # Create the cache directory so the Cache task doesn't fail
+          - script: mkdir -p $(TF_PLUGIN_CACHE_DIR)
+            displayName: 'Create Plugin Cache Dir'
+
+          - task: Cache@2
+            displayName: 'Cache Terraform Providers'
+            inputs:
+              key: 'terraform | "linux" | terraform/.terraform.lock.hcl'
+              restoreKeys: |
+                terraform | "linux"
+              path: $(TF_PLUGIN_CACHE_DIR)
+
           - task: TerraformInstaller@1
-            displayName: 'Install Terraform'
             inputs:
               terraformVersion: $(TERRAFORM_VERSION)
 
@@ -51,29 +64,21 @@ stages:
               scriptType: 'inline'
               inlineScript: |
                 set -e
-
-                echo "Verifying AWS credentials..."
-                aws sts get-caller-identity
-
                 cd terraform
-
-                echo "Initializing Terraform..."
-                terraform init
-
-                echo "Running Terraform plan..."
+                terraform init -input=false
                 terraform plan -out=tfplan
-
-                echo "Showing plan..."
                 terraform show -no-color tfplan
 
           - task: PublishPipelineArtifact@1
-            displayName: 'Publish Terraform Plan'
+            displayName: 'Publish Plan (Excluding .terraform)'
             inputs:
               targetPath: '$(System.DefaultWorkingDirectory)/terraform'
               artifact: 'terraform-plan'
+
   - stage: Apply
     displayName: 'Terraform Apply'
     dependsOn: Plan
+    # Only runs on Merges (IndividualCI) to development or main branches
     condition: |
       and(
         succeeded(),
@@ -93,13 +98,23 @@ stages:
               steps:
                 - checkout: self
 
+                - script: mkdir -p $(TF_PLUGIN_CACHE_DIR)
+                  displayName: 'Create Plugin Cache Dir'
+
+                - task: Cache@2
+                  displayName: 'Cache Terraform Providers'
+                  inputs:
+                    key: 'terraform | "linux" | terraform/.terraform.lock.hcl'
+                    restoreKeys: |
+                      terraform | "linux"
+                    path: $(TF_PLUGIN_CACHE_DIR)
+
                 - task: TerraformInstaller@1
-                  displayName: 'Install Terraform'
                   inputs:
                     terraformVersion: $(TERRAFORM_VERSION)
 
                 - task: DownloadPipelineArtifact@2
-                  displayName: 'Download Terraform Plan'
+                  displayName: 'Download Plan'
                   inputs:
                     artifact: 'terraform-plan'
                     path: '$(System.DefaultWorkingDirectory)/terraform'
@@ -112,16 +127,10 @@ stages:
                     scriptType: 'inline'
                     inlineScript: |
                       set -e
-
-                      echo "Verifying AWS credentials..."
-                      aws sts get-caller-identity
-
                       cd terraform
 
+                      # Re-init uses the cache we restored above
                       terraform init -input=false
 
                       echo "Applying Terraform plan..."
                       terraform apply -auto-approve tfplan
-
-                      echo "Terraform outputs:"
-                      terraform output -json
