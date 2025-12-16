@@ -69,9 +69,8 @@ stages:
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Terraform Plan'
             inputs:
-              targetPath: 'terraform'
+              targetPath: '$(System.DefaultWorkingDirectory)/terraform'
               artifact: 'terraform-plan'
-
   - stage: Apply
     displayName: 'Terraform Apply'
     dependsOn: Plan
@@ -119,8 +118,7 @@ stages:
 
                       cd terraform
 
-                      echo "Initializing Terraform..."
-                      terraform init
+                      terraform init -input=false
 
                       echo "Applying Terraform plan..."
                       terraform apply -auto-approve tfplan
