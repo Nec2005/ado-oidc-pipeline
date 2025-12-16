@@ -73,7 +73,14 @@ stages:
   - stage: Apply
     displayName: 'Terraform Apply'
     dependsOn: Plan
-    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/development')))
+    condition: |
+      and(
+        succeeded(),
+        or(
+          eq(variables['Build.SourceBranch'], 'refs/heads/main'),
+          eq(variables['Build.SourceBranch'], 'refs/heads/development')
+        )
+      )
     jobs:
       - deployment: TerraformApply
         displayName: 'Apply Terraform Changes'
