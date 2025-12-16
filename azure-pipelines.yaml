@@ -25,7 +25,7 @@ variables:
   - name: SERVICE_CONNECTION_NAME
     value: 'AWS-necatidev-533267146698'
   - name: TERRAFORM_VERSION
-    value: '1.6.0'
+    value: '1.13.4'
 
 stages:
   - stage: Plan
@@ -73,7 +73,7 @@ stages:
   - stage: Apply
     displayName: 'Terraform Apply'
     dependsOn: Plan
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/development')))
     jobs:
       - deployment: TerraformApply
         displayName: 'Apply Terraform Changes'
@@ -117,4 +117,3 @@ stages:
 
                       echo "Terraform outputs:"
                       terraform output -json
-                      

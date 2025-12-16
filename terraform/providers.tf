@@ -19,7 +19,7 @@ terraform {
     bucket         = "eu-west-1-chillipharm-terraform-state-necatidev"
     key            = "aws/ado-oidc-pipeline/terraform.tfstate"
     region         = "eu-west-1"
-    use_lockfile = true
+    use_lockfile   = true
   }
 }
 
@@ -31,3 +31,5 @@ provider "azuredevops" {
   org_service_url = var.azuredevops_org_service_url
   use_oidc = true
 }
+
+#
