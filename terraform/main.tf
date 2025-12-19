@@ -7,22 +7,27 @@ locals {
   }
 }
 
-resource "azuredevops_variable_group" "example" {
-  project_id   = data.azuredevops_project.example.id
-  name         = "Example Variable Group"
-  description  = "Example Variable Group Description"
-  allow_access = true
+# resource "azuredevops_variable_group" "example" {
+#   project_id   = data.azuredevops_project.example.id
+#   name         = "Example Variable Group"
+#   description  = "Example Variable Group Description"
+#   allow_access = true
 
-  variable {
-    name  = "key1"
-    value = "val1"
-  }
+#   variable {
+#     name  = "key1"
+#     value = "val1"
+#   }
 
-  variable {
-    name         = "key2"
-    secret_value = "val2"
-    is_secret    = true
-  }
+#   variable {
+#     name         = "key2"
+#     secret_value = "val2"
+#     is_secret    = true
+#   }
+# }
+
+resource "azuredevops_project_tags" "example" {
+  project_id = data.azuredevops_project.example.id
+  tags       = ["tag1", "tag2"]
 }
 
 data "azuredevops_project" "example" {
