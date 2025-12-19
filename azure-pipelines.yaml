@@ -67,26 +67,27 @@ stages:
               # Important: This makes the $idToken available in the script
               addSpnToEnvironment: true
               inlineScript: |
-                # 1. AWS Authentication (Using the Azure OIDC Token)
-                # We tell AWS to use the token provided by Azure DevOps
+                # 1. AWS OIDC Configuration
                 export AWS_WEB_IDENTITY_TOKEN_FILE=$(mktemp)
-                echo "$idToken" > $AWS_WEB_IDENTITY_TOKEN_FILE
+                echo "$idToken" > "$AWS_WEB_IDENTITY_TOKEN_FILE"
                 export AWS_ROLE_ARN="arn:aws:iam::533267146698:role/ADODeploymentRole"
+                export AWS_WEB_IDENTITY_TOKEN_FILE=$AWS_WEB_IDENTITY_TOKEN_FILE
                 export AWS_ROLE_SESSION_NAME="AzureDevOpsTerraform"
+                export AWS_REGION="eu-west-1" # MUST be set for S3 backend
 
-                # 2. Azure DevOps Provider Auth
-                # The provider will use these variables to login via OIDC
-                export AZDO_ORG_SERVICE_URL="https://dev.azure.com/necdemo"
+                # 2. Azure DevOps Provider Configuration
+                # Map the task-provided variables to the ARM_ naming convention
                 export ARM_CLIENT_ID=$servicePrincipalId
                 export ARM_TENANT_ID=$tenantId
+                export ARM_OIDC_TOKEN=$idToken
                 export ARM_USE_OIDC=true
+                export AZDO_ORG_SERVICE_URL="https://dev.azure.com/necdemo"
 
-                # 3. Run Terraform
+                # 3. Execution
                 set -e
                 cd terraform
                 terraform init -input=false
                 terraform plan -out=tfplan
-                terraform show -no-color tfplan
             env:
               # Required for Azure/AzureDevOps OIDC
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
