@@ -20,9 +20,9 @@ terraform {
     key            = "aws/ado-oidc-pipeline/terraform.tfstate"
     region         = "eu-west-1"
     use_lockfile   = true
-    assume_role = {
-      role_arn = "arn:aws:iam::533267146698:role/DeploymentRole"
-    }
+    # assume_role = {
+    #   role_arn = "arn:aws:iam::533267146698:role/DeploymentRole"
+    # }
   }
 }
 
