@@ -27,7 +27,7 @@ variables:
   - name: SERVICE_CONNECTION_NAME
     value: 'AWS-necatidev-533267146698'
   - name: SERVICE_CONNECTION_ID
-    value: '5276ad9e-6da8-4500-8aff-3dfe9789dd26'
+    value: '82774356-daf9-4ea3-b272-747532c6fcd9'
   - name: TERRAFORM_VERSION
     value: '1.13.4'
   - name: TF_PLUGIN_CACHE_DIR
