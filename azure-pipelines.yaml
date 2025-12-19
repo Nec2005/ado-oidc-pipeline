@@ -62,6 +62,7 @@ stages:
             inputs:
               azureSubscription: $(SERVICE_CONNECTION_ID)
               scriptType: bash
+              addSpnToEnvironment: true
               scriptLocation: "inlineScript"
               inlineScript: |
                 set -e
