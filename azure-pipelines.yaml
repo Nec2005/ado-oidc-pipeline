@@ -58,58 +58,58 @@ stages:
             inputs:
               terraformVersion: $(TERRAFORM_VERSION)
 
-          - task: AzureCLI@2
-            displayName: 'Terraform Plan/Apply (AWS + Azure DevOps)'
-            inputs:
-              azureSubscription: $(SERVICE_CONNECTION_ID) # OIDC enabled connection
-              scriptType: bash
-              scriptLocation: inlineScript
-              # Important: This makes the $idToken available in the script
-              addSpnToEnvironment: true
-              inlineScript: |
-                # 1. AWS OIDC Configuration
-                export AWS_WEB_IDENTITY_TOKEN_FILE=$(mktemp)
-                echo "$idToken" > "$AWS_WEB_IDENTITY_TOKEN_FILE"
-                export AWS_ROLE_ARN="arn:aws:iam::533267146698:role/ADODeploymentRole"
-                export AWS_WEB_IDENTITY_TOKEN_FILE=$AWS_WEB_IDENTITY_TOKEN_FILE
-                export AWS_ROLE_SESSION_NAME="AzureDevOpsTerraform"
-                export AWS_REGION="eu-west-1" # MUST be set for S3 backend
-
-                # 2. Azure DevOps Provider Configuration
-                # Map the task-provided variables to the ARM_ naming convention
-                export ARM_CLIENT_ID=$servicePrincipalId
-                export ARM_TENANT_ID=$tenantId
-                export ARM_OIDC_TOKEN=$idToken
-                export ARM_USE_OIDC=true
-                export AZDO_ORG_SERVICE_URL="https://dev.azure.com/necdemo"
-
-                # Debug: Extract the Issuer from the token
-                echo "--- TOKEN DEBUG ---"
-                echo $idToken | cut -d. -f2 | base64 -d | jq -r '.iss, .aud'
-                echo "-------------------"
-
-                # 3. Execution
-                set -e
-                cd terraform
-                terraform init -input=false
-                terraform plan -out=tfplan
-            env:
-              # Required for Azure/AzureDevOps OIDC
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              SYSTEM_OIDCREQUESTURI: $(System.OidcRequestUri)
-
-          # - task: AWSShellScript@1
-          #   displayName: 'Terraform Init & Plan'
+          # - task: AzureCLI@2
+          #   displayName: 'Terraform Plan/Apply (AWS + Azure DevOps)'
           #   inputs:
-          #     awsCredentials: $(SERVICE_CONNECTION_NAME)
-          #     regionName: $(AWS_REGION)
-          #     scriptType: 'inline'
+          #     azureSubscription: $(SERVICE_CONNECTION_ID) # OIDC enabled connection
+          #     scriptType: bash
+          #     scriptLocation: inlineScript
+          #     # Important: This makes the $idToken available in the script
+          #     addSpnToEnvironment: true
           #     inlineScript: |
+          #       # 1. AWS OIDC Configuration
+          #       export AWS_WEB_IDENTITY_TOKEN_FILE=$(mktemp)
+          #       echo "$idToken" > "$AWS_WEB_IDENTITY_TOKEN_FILE"
+          #       export AWS_ROLE_ARN="arn:aws:iam::533267146698:role/ADODeploymentRole"
+          #       export AWS_WEB_IDENTITY_TOKEN_FILE=$AWS_WEB_IDENTITY_TOKEN_FILE
+          #       export AWS_ROLE_SESSION_NAME="AzureDevOpsTerraform"
+          #       export AWS_REGION="eu-west-1" # MUST be set for S3 backend
+
+          #       # 2. Azure DevOps Provider Configuration
+          #       # Map the task-provided variables to the ARM_ naming convention
+          #       export ARM_CLIENT_ID=$servicePrincipalId
+          #       export ARM_TENANT_ID=$tenantId
+          #       export ARM_OIDC_TOKEN=$idToken
+          #       export ARM_USE_OIDC=true
+          #       export AZDO_ORG_SERVICE_URL="https://dev.azure.com/necdemo"
+
+          #       # Debug: Extract the Issuer from the token
+          #       echo "--- TOKEN DEBUG ---"
+          #       echo $idToken | cut -d. -f2 | base64 -d | jq -r '.iss, .aud'
+          #       echo "-------------------"
+
+          #       # 3. Execution
           #       set -e
           #       cd terraform
           #       terraform init -input=false
           #       terraform plan -out=tfplan
-          #       terraform show -no-color tfplan
+          #   env:
+          #     # Required for Azure/AzureDevOps OIDC
+          #     SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+          #     SYSTEM_OIDCREQUESTURI: $(System.OidcRequestUri)
+
+          - task: AWSShellScript@1
+            displayName: 'Terraform Init & Plan'
+            inputs:
+              awsCredentials: $(SERVICE_CONNECTION_NAME)
+              regionName: $(AWS_REGION)
+              scriptType: 'inline'
+              inlineScript: |
+                set -e
+                cd terraform
+                terraform init -input=false
+                terraform plan -out=tfplan
+                terraform show -no-color tfplan
 
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Plan (Excluding .terraform)'
