@@ -83,6 +83,11 @@ stages:
                 export ARM_USE_OIDC=true
                 export AZDO_ORG_SERVICE_URL="https://dev.azure.com/necdemo"
 
+                # Debug: Extract the Issuer from the token
+                echo "--- TOKEN DEBUG ---"
+                echo $idToken | cut -d. -f2 | base64 -d | jq -r '.iss, .aud'
+                echo "-------------------"
+
                 # 3. Execution
                 set -e
                 cd terraform
