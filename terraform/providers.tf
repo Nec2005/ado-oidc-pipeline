@@ -6,7 +6,7 @@ terraform {
     }
     azuredevops = {
       source  = "microsoft/azuredevops"
-      version = "~> 1.4.0"
+      version = "~> 1.12.0"
     }
     null = {
       source  = "hashicorp/null"
