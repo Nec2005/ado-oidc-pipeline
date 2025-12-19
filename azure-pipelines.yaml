@@ -58,40 +58,40 @@ stages:
             inputs:
               terraformVersion: $(TERRAFORM_VERSION)
 
-          - task: AzureCLI@2
-            inputs:
-              azureSubscription: $(SERVICE_CONNECTION_ID)
-              scriptType: bash
-              addSpnToEnvironment: true
-              scriptLocation: "inlineScript"
-              inlineScript: |
-                # 1. Create the token file
-                TOKEN_FILE_PATH=$(pwd)/aws_token.jwt
-                echo "$idToken" > "$TOKEN_FILE_PATH"
+          # - task: AzureCLI@2
+          #   inputs:
+          #     azureSubscription: $(SERVICE_CONNECTION_ID)
+          #     scriptType: bash
+          #     addSpnToEnvironment: true
+          #     scriptLocation: "inlineScript"
+          #     inlineScript: |
+          #       # 1. Create the token file
+          #       TOKEN_FILE_PATH=$(pwd)/aws_token.jwt
+          #       echo "$idToken" > "$TOKEN_FILE_PATH"
 
-                # 2. EXPORT the variables (Terraform needs these for the Backend)
-                export AWS_WEB_IDENTITY_TOKEN_FILE="$TOKEN_FILE_PATH"
-                export AWS_ROLE_ARN="arn:aws:iam::533267146698:role/ADODeploymentRole"
-                export AWS_REGION="eu-west-1"
-                export AWS_DEFAULT_REGION="eu-west-1"
+          #       # 2. EXPORT the variables (Terraform needs these for the Backend)
+          #       export AWS_WEB_IDENTITY_TOKEN_FILE="$TOKEN_FILE_PATH"
+          #       export AWS_ROLE_ARN="arn:aws:iam::533267146698:role/ADODeploymentRole"
+          #       export AWS_REGION="eu-west-1"
+          #       export AWS_DEFAULT_REGION="eu-west-1"
 
-                # 3. Azure DevOps Provider vars
-                export ARM_CLIENT_ID=$servicePrincipalId
-                export ARM_TENANT_ID=$tenantId
-                export ARM_OIDC_TOKEN=$idToken
-                export ARM_USE_OIDC=true
+          #       # 3. Azure DevOps Provider vars
+          #       export ARM_CLIENT_ID=$servicePrincipalId
+          #       export ARM_TENANT_ID=$tenantId
+          #       export ARM_OIDC_TOKEN=$idToken
+          #       export ARM_USE_OIDC=true
 
-                # 4. Debug check: Confirm the file exists and has content
-                echo "Token file created at: $AWS_WEB_IDENTITY_TOKEN_FILE"
+          #       # 4. Debug check: Confirm the file exists and has content
+          #       echo "Token file created at: $AWS_WEB_IDENTITY_TOKEN_FILE"
 
-                cd terraform
-                terraform init -input=false -reconfigure
-                terraform plan -out=tfplan
-            env:
-              ARM_USE_OIDC: true
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              SYSTEM_OIDCREQUESTURI: $(System.OidcRequestUri)
-              ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID: $(SERVICE_CONNECTION_ID)
+          #       cd terraform
+          #       terraform init -input=false -reconfigure
+          #       terraform plan -out=tfplan
+          #   env:
+          #     ARM_USE_OIDC: true
+          #     SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+          #     SYSTEM_OIDCREQUESTURI: $(System.OidcRequestUri)
+          #     ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID: $(SERVICE_CONNECTION_ID)
 
 
           # - task: AzureCLI@2
@@ -134,18 +134,18 @@ stages:
           #     SYSTEM_ACCESSTOKEN: $(System.AccessToken)
           #     SYSTEM_OIDCREQUESTURI: $(System.OidcRequestUri)
 
-          # - task: AWSShellScript@1
-          #   displayName: 'Terraform Init & Plan'
-          #   inputs:
-          #     awsCredentials: $(SERVICE_CONNECTION_NAME)
-          #     regionName: $(AWS_REGION)
-          #     scriptType: 'inline'
-          #     inlineScript: |
-          #       set -e
-          #       cd terraform
-          #       terraform init -input=false
-          #       terraform plan -out=tfplan
-          #       terraform show -no-color tfplan
+          - task: AWSShellScript@1
+            displayName: 'Terraform Init & Plan'
+            inputs:
+              awsCredentials: $(SERVICE_CONNECTION_NAME)
+              regionName: $(AWS_REGION)
+              scriptType: 'inline'
+              inlineScript: |
+                set -e
+                cd terraform
+                terraform init -input=false
+                terraform plan -out=tfplan
+                terraform show -no-color tfplan
 
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Plan (Excluding .terraform)'

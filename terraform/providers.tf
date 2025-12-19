@@ -32,7 +32,7 @@ provider "aws" {
 
 provider "azuredevops" {
   org_service_url = var.azuredevops_org_service_url
-  client_id            = "1a550dca-bd4e-4c4d-8916-845a818246a3"
-  tenant_id            = "7fb00207-c2a9-42ba-b119-d3ed58581456"
+  # client_id            = "1a550dca-bd4e-4c4d-8916-845a818246a3"
+  # tenant_id            = "7fb00207-c2a9-42ba-b119-d3ed58581456"
   use_oidc = true
 }
