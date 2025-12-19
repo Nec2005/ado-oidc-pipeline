@@ -25,14 +25,14 @@ locals {
 #   }
 # }
 
-resource "azuredevops_project_tags" "example" {
-  project_id = data.azuredevops_project.example.id
-  tags       = ["tag1", "tag2"]
-}
+# resource "azuredevops_project_tags" "example" {
+#   project_id = data.azuredevops_project.example.id
+#   tags       = ["tag1", "tag2"]
+# }
 
-data "azuredevops_project" "example" {
-  name = "Demo"
-}
+# data "azuredevops_project" "example" {
+#   name = "Demo"
+# }
 
 # S3 Buckets
 resource "aws_s3_bucket" "this" {
