@@ -6,7 +6,7 @@ terraform {
     }
     azuredevops = {
       source  = "microsoft/azuredevops"
-      version = "~> 1.4.0"
+      version = "~> 1.12.0"
     }
     null = {
       source  = "hashicorp/null"
@@ -20,6 +20,9 @@ terraform {
     key            = "aws/ado-oidc-pipeline/terraform.tfstate"
     region         = "eu-west-1"
     use_lockfile   = true
+    # assume_role = {
+    #   role_arn = "arn:aws:iam::533267146698:role/DeploymentRole"
+    # }
   }
 }
 

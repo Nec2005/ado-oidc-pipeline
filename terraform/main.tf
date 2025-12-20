@@ -7,6 +7,33 @@ locals {
   }
 }
 
+# resource "azuredevops_variable_group" "example" {
+#   project_id   = data.azuredevops_project.example.id
+#   name         = "Example Variable Group"
+#   description  = "Example Variable Group Description"
+#   allow_access = true
+
+#   variable {
+#     name  = "key1"
+#     value = "val1"
+#   }
+
+#   variable {
+#     name         = "key2"
+#     secret_value = "val2"
+#     is_secret    = true
+#   }
+# }
+
+# resource "azuredevops_project_tags" "example" {
+#   project_id = data.azuredevops_project.example.id
+#   tags       = ["tag1", "tag2"]
+# }
+
+# data "azuredevops_project" "example" {
+#   name = "Demo"
+# }
+
 # S3 Buckets
 resource "aws_s3_bucket" "this" {
   for_each = var.buckets
@@ -46,6 +73,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
     bucket_key_enabled = true
   }
 }
+
+
 
 # Block all public access
 resource "aws_s3_bucket_public_access_block" "this" {
