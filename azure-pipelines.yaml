@@ -211,4 +211,4 @@ stages:
                       terraform init -input=false
 
                       echo "Applying Terraform plan..."
-                      terraform destroy -auto-approve tfplan
+                      terraform destroy -auto-approve
